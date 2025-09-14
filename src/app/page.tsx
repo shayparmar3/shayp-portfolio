@@ -1,103 +1,94 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect } from "react";
+import LakeScene from "@/components/scenes/LakeScene";
+import UnderwaterScene from "@/components/scenes/UnderwaterScene";
+
+export default function App() {
+  const [scene, setScene] = useState<"lake" | "underwater">("lake");
+  const [overlayActive, setOverlayActive] = useState(false);
+  const [hasCasted, setHasCasted] = useState(false);
+
+  // Handle first cast via keypress and subsequent arrow navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!hasCasted) {
+        // First-ever cast: any key triggers underwater
+        setHasCasted(true);
+        startTransition("underwater");
+      } else {
+        // Only allow ArrowUp/ArrowDown after first cast
+        if (e.key === "ArrowUp" && scene === "underwater") {
+          startTransition("lake");
+        } else if (e.key === "ArrowDown" && scene === "lake") {
+          startTransition("underwater");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [hasCasted, scene]);
+
+  // Handle scroll transitions after first cast
+  useEffect(() => {
+    if (!hasCasted) return;
+
+    const handleScroll = (e: WheelEvent) => {
+      e.preventDefault(); // prevent default page scrolling
+      if (overlayActive) return; // ignore if mid-transition
+
+      if (e.deltaY > 0 && scene === "lake") {
+        startTransition("underwater");
+      } else if (e.deltaY < 0 && scene === "underwater") {
+        startTransition("lake");
+      }
+    };
+
+    window.addEventListener("wheel", handleScroll, { passive: false });
+    return () => window.removeEventListener("wheel", handleScroll);
+  }, [hasCasted, scene, overlayActive]);
+
+  // Transition handler
+  const startTransition = (targetScene: "lake" | "underwater") => {
+    setOverlayActive(true);
+    setTimeout(() => {
+      setScene(targetScene);
+      setOverlayActive(false);
+    }, 500); // 0.5s black overlay
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "grid",
+        gridTemplateRows: "1fr",
+        gridTemplateColumns: "1fr",
+        overflow: "hidden", // ensure nothing scrolls outside
+      }}
+    >
+      {/* Scene layers */}
+      <div style={{ gridRow: 1, gridColumn: 1 }}>
+        {scene === "lake" && <LakeScene />}
+        {scene === "underwater" && <UnderwaterScene />}
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* Black overlay for transitions */}
+      <div
+        style={{
+          gridRow: 1,
+          gridColumn: 1,
+          width: "100%",
+          height: "100%",
+          background: "black",
+          opacity: overlayActive ? 1 : 0,
+          transition: "opacity 0.5s ease-in-out",
+          pointerEvents: "none",
+          zIndex: 10,
+        }}
+      />
     </div>
   );
 }
