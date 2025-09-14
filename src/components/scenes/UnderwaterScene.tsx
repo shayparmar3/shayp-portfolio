@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import hookImg from "@/assets/images/hook.png";
 import Fish from "@/components/fish";
 
@@ -18,11 +18,14 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 
+import { CaughtFishContext, FishData } from "@/context/CaughtFishContext";
+
 export default function UnderwaterScene() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [lineStartX, setLineStartX] = useState(window.innerWidth * 0.23);
   const [caughtFish, setCaughtFish] = useState<string | null>(null);
-  const [collectedFish, setCollectedFish] = useState<string[]>([]); // for trophy room
+
+  const { addCaughtFish } = useContext(CaughtFishContext);
 
   // Track mouse
   useEffect(() => {
@@ -47,12 +50,19 @@ export default function UnderwaterScene() {
   }, []);
 
   // Fish appear one by one with random delay
-  const fishData = [
-    { icon: githubIcon.src, label: "Projects", dir: "left" as const, speed: 0.5 },
-    { icon: cvIcon.src, label: "CV", dir: "right" as const, speed: 0.7 },
-    { icon: contactIcon.src, label: "Contact", dir: "left" as const, speed: 0.6 },
-    { icon: trophyIcon.src, label: "Achievements", dir: "right" as const, speed: 0.4 },
+  const fishData: FishData[] = [
+    { icon: githubIcon.src, label: "Projects" },
+    { icon: cvIcon.src, label: "CV" },
+    { icon: contactIcon.src, label: "Contact" },
+    { icon: trophyIcon.src, label: "Achievements" },
   ];
+  const fishMovement = [
+    { dir: "left" as const, speed: 0.5 },
+    { dir: "right" as const, speed: 0.7 },
+    { dir: "left" as const, speed: 0.6 },
+    { dir: "right" as const, speed: 0.4 },
+  ];
+
   const [showFish, setShowFish] = useState<boolean[]>([false, false, false, false]);
 
   useEffect(() => {
@@ -71,14 +81,14 @@ export default function UnderwaterScene() {
   const hookOffset = { x: 10, y: -10 };
 
   // Handle catching fish
-  const handleCaught = (label: string, index: number) => {
-    setCaughtFish(label); // show dialog
+  const handleCaught = (fish: FishData, index: number) => {
+    setCaughtFish(fish.label); // show dialog
     setShowFish((prev) => {
       const copy = [...prev];
-      copy[index] = false; // hide fish
+      copy[index] = false; // hide fish from underwater
       return copy;
     });
-    setCollectedFish((prev) => [...prev, label]); // store for trophy room
+    addCaughtFish(fish); // store globally for trophy room
   };
 
   return (
@@ -153,10 +163,10 @@ export default function UnderwaterScene() {
             key={i}
             icon={fish.icon}
             label={fish.label}
-            initialDirection={fish.dir}
-            speed={fish.speed}
+            initialDirection={fishMovement[i].dir}
+            speed={fishMovement[i].speed}
             hookPos={{ x: mousePos.x + hookOffset.x, y: mousePos.y + hookOffset.y }}
-            onCaught={() => handleCaught(fish.label, i)}
+            onCaught={() => handleCaught(fish, i)}
           />
         ) : null
       )}
