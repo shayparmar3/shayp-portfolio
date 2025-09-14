@@ -78,7 +78,7 @@ export default function LakeScene() {
       </div>
 
       {/* Instructions bottom center */}
-      <div
+      {/* <div
         style={{
           gridRow: "2",
           gridColumn: "2",
@@ -91,7 +91,7 @@ export default function LakeScene() {
         }}
       >
         Press any key to cast your line 🎣
-      </div>
+      </div> */}
 
       {/* Invisible clickable area over cabin */}
       <div

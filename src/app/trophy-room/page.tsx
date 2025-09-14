@@ -28,7 +28,7 @@ export default function TrophyRoomPage() {
     >
       {caughtFish.length === 0 ? (
         <p style={{ fontSize: "1.5rem", color: "#333" }}>
-          You haven’t caught any fish yet! Go back to the lake and catch some.
+          You have not caught any fish yet! Go back to the lake and catch some.
         </p>
       ) : (
         caughtFish.map((fish, i) => (
